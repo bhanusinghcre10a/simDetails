@@ -6,11 +6,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AddressMapper {
+public class AddressMapper implements Mapper{
 
     public void writeConfig() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        SimAddressLayout testSimAddressLayout = new SimAddressLayout();
+        SimAddressLayoutConfig testSimAddressLayout = new SimAddressLayoutConfig();
         List<String> cities = new ArrayList<>();
         cities.add("mumbai");
         cities.add("delhi");
@@ -24,9 +24,9 @@ public class AddressMapper {
         objectMapper.writeValue(new File("C:/Users/bhanu singh/Desktop/sim_activation/src/main/resources/config/SimAddressLayout.json"),testSimAddressLayout);
     }
 
-    public SimAddressLayout readConfig() throws IOException {
+    public SimAddressLayoutConfig getConfig() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        SimAddressLayout testSimAddressLayout = objectMapper.readValue(new File("C:/Users/bhanu singh/Desktop/sim_activation/src/main/resources/config/SimAddressLayout.json"),SimAddressLayout.class);
+        SimAddressLayoutConfig testSimAddressLayout = objectMapper.readValue(new File("C:/Users/bhanu singh/Desktop/sim_activation/src/main/resources/config/SimAddressLayout.json"),SimAddressLayoutConfig.class);
         return testSimAddressLayout;
     }
 }

@@ -1,5 +1,6 @@
 
 package com.simactivation.service;
+import com.simactivation.repository.CustomerRepositoryExtended;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +11,9 @@ import com.simactivation.repository.CustomerRepository;
 public class CustomerService {
 	@Autowired
 	private CustomerRepository repository;
+
+	@Autowired
+	CustomerRepositoryExtended customerRepositoryExtended;
 	public boolean validateDobAndEmail(CustomerDto customer)
 	{
 		if(repository.findByDateOfBirth(customer.getDateOfBirth())!=null && repository.findByEmailAddress(customer.getEmailAddress())!=null) {
@@ -39,5 +43,9 @@ public class CustomerService {
 		else {
 			return false;
 		}
+	}
+
+	public void addCustomer(CustomerDto customer) {
+		customerRepositoryExtended.addUser(customer);
 	}
 }

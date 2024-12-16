@@ -10,7 +10,7 @@ import java.io.IOException;
 public class SimActivationApplication {
 
 	public static void main(String[] args) throws IOException {
-		SimActivationApplication.initApp();
+		//SimActivationApplication.initApp();
 		SpringApplication.run(SimActivationApplication.class, args);
 	}
 

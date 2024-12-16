@@ -2,7 +2,7 @@ package com.simactivation.util;
 
 import java.util.List;
 
-public class SimAddressLayout {
+public class SimAddressLayoutConfig implements Config {
 
     private List<String> cities;
     private List<String> states;

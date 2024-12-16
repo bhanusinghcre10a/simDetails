@@ -1,7 +1,9 @@
 package com.simactivation.controller;
 
-//import org.springframework.beans.factory.annotation.Autowired;
-import com.simactivation.util.AddressMapper;
+import com.simactivation.handler.GlobalHandler;
+import com.simactivation.repository.CustomerRepositoryExtended;
+import com.simactivation.util.ConfigFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.BindingResult;
 
@@ -16,6 +18,7 @@ import com.simactivation.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -26,14 +29,16 @@ import com.simactivation.NoSuchCustomerException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.ModelAndView;
 
 
 @RestController
 @RequestMapping("/customer")
 public class CustomerController{
-	
-	
-	
+
+
+	@Autowired
+	private ApplicationContext context;
 	@Autowired
 	CustomerIdentityService CustomerIdentityservice;
 	@Autowired
@@ -41,12 +46,43 @@ public class CustomerController{
 	@Autowired
 	CustomerService CustomerService;
 
+	@Autowired
+	ConfigFactory configFactory ;
+
+	@Autowired
+	CustomerRepositoryExtended customerRepositoryExtended;
+
+
 	@GetMapping("/Config")
-	public ResponseEntity<Object> getConfic() throws IOException {
-		AddressMapper addressMapper = new AddressMapper();
-		return ResponseEntity.ok(addressMapper.readConfig());
+	public ModelAndView getConfig(@RequestParam("config") String config) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+		ConfigFactory configFactory = context.getBean(ConfigFactory.class);
+		ModelAndView mv =  new ModelAndView();
+		mv.setViewName("index");
+		mv.addObject("config",configFactory.get(config));
+		return mv;
 	}
-	
+
+    @GetMapping("/config")
+    public ResponseEntity<Object> getconfig(@RequestParam("config") String config) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        ConfigFactory configFactory = context.getBean(ConfigFactory.class);
+        return ResponseEntity.ok(configFactory.get(config));
+    }
+
+	@GetMapping("/customers")
+	public ResponseEntity<Object> getCustomers() throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+		return ResponseEntity.ok(customerRepositoryExtended.findUsers());
+	}
+
+	@PostMapping("/add")
+	public ResponseEntity<Object> addCustomer(@RequestBody CustomerDto customer) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+		try {
+			CustomerService.addCustomer(customer);
+		}catch (Exception e) {
+			return ResponseEntity.ok("something went wrong");
+		}
+		return ResponseEntity.ok("added");
+	}
+
 	@PostMapping("/details/basic")
     public ResponseEntity<Object> postBasicDetails(@Valid @RequestBody CustomerDto customer,BindingResult errors){
 		String response = "";
@@ -70,8 +106,8 @@ public class CustomerController{
         	}
         }
     }
-	
-	
+
+
 	@PostMapping("/details/personal")
     public ResponseEntity<Object> postPersonalDetails(@Valid @RequestBody CustomerDto customer,BindingResult errors) throws NoSuchCustomerException{
 		String response = "";
@@ -100,12 +136,12 @@ public class CustomerController{
             	error.setErrorCode(HttpStatus.NOT_ACCEPTABLE.value());
             	error.setMessage("No customer found for the provided details");
             	 return ResponseEntity.ok(error);
-        		
+
         	}
         }
     }
-	
-	
+
+
 	@PutMapping("/address")
     public ResponseEntity<Object> updateAddressDetails(@Valid @RequestBody CustomerAddressDto customer, BindingResult errors) throws NoSuchCustomerAddressException{
 		String response = "";
@@ -121,9 +157,9 @@ public class CustomerController{
         	CustomerAddressService.updateAddress(customer);
         	return ResponseEntity.ok("address updated successfully");
         }
-        
+
 	}
-	
+
 	@PostMapping(value="/idproof",consumes="application/json")
     public ResponseEntity<Object>  postpersonaldetails(@Valid @RequestBody CustomerIdentityDto customerIdentity,BindingResult errors){
 		String response = "";
@@ -136,7 +172,7 @@ public class CustomerController{
         	 return ResponseEntity.ok(error);
         }
         else {
-        	
+
         	if(!CustomerIdentityservice.validateName(customerIdentity)) {
         		ErrorsMessage error =new ErrorsMessage();
             	error.setErrorCode(HttpStatus.NOT_FOUND.value());
@@ -144,7 +180,7 @@ public class CustomerController{
             	return ResponseEntity.ok(error);
         	}
         	else if(!CustomerIdentityservice.validateDob(customerIdentity)) {
-        		
+
         		ErrorsMessage error =new ErrorsMessage();
             	error.setErrorCode(HttpStatus.NOT_FOUND.value());
             	error.setMessage("Incorrect date of birth details");
